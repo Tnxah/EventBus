@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace RockInMyShoe.EventBus
+namespace RockInMyShoe.Global.Eventing
 {
     public class EventBus
     {
@@ -11,31 +11,40 @@ namespace RockInMyShoe.EventBus
         public static void Subscribe<T>(Action<T> listener)
         {
             Type eventType = typeof(T);
-            if (!eventListeners.ContainsKey(eventType))
+            lock (eventListeners)
             {
-                eventListeners[eventType] = new List<Delegate>();
+                if (!eventListeners.ContainsKey(eventType))
+                {
+                    eventListeners[eventType] = new List<Delegate>();
+                }
+                eventListeners[eventType].Add(listener);
             }
-            eventListeners[eventType].Add(listener);
         }
 
         public static void Unsubscribe<T>(Action<T> listener)
         {
             Type eventType = typeof(T);
-            if (eventListeners.ContainsKey(eventType))
+            lock (eventListeners)
             {
-                eventListeners[eventType].Remove(listener);
+                if (eventListeners.ContainsKey(eventType))
+                {
+                    eventListeners[eventType].Remove(listener);
+                }   
             }
+            
         }
 
         public static void Publish<T>(T eventData)
         {
             Type eventType = typeof(T);
-            if (eventListeners.ContainsKey(eventType))
+            lock (eventListeners)
             {
-                // Copy the list to avoid modification during iteration.
-                foreach (var listener in eventListeners[eventType].ToList().Cast<Action<T>>())
+                if (eventListeners.ContainsKey(eventType))
                 {
-                    listener(eventData);
+                    foreach (var listener in eventListeners[eventType].ToList().Cast<Action<T>>())
+                    {
+                        listener(eventData);
+                    }
                 }
             }
         }

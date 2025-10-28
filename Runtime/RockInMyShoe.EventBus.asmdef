@@ -1,6 +1,6 @@
 {
     "name": "RockInMyShoe.EventBus",
-    "rootNamespace": "",
+    "rootNamespace": "RockInMyShoe.Global.Eventing",
     "references": [],
     "includePlatforms": [],
     "excludePlatforms": [],
